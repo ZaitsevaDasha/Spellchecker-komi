@@ -718,7 +718,6 @@
 	     }
 	     else
              	return []
-             */
  
              /**
               * Returns a hash keyed by all of the strings that can be made by making a single edit to the word (or words in) `words`
