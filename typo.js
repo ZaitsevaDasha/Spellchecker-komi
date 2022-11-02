@@ -713,59 +713,11 @@
          alphabet: "",
  
          suggest: function (word, limit) {
-             if (!this.loaded) {
-                 throw "Dictionary not loaded.";
-             }
- 
-             limit = limit || 5;
- 
-             if (this.memoized.hasOwnProperty(word)) {
-                 var memoizedLimit = this.memoized[word]['limit'];
- 
-                 // Only return the cached list if it's big enough or if there weren't enough suggestions
-                 // to fill a smaller limit.
-                 if (limit <= memoizedLimit || this.memoized[word]['suggestions'].length < memoizedLimit) {
-                     return this.memoized[word]['suggestions'].slice(0, limit);
-                 }
-             }
- 
-             if (this.check(word)) return [];
- 
-             // Check the replacement table.
-             for (var i = 0, _len = this.replacementTable.length; i < _len; i++) {
-                 var replacementEntry = this.replacementTable[i];
- 
-                 if (word.indexOf(replacementEntry[0]) !== -1) {
-                     var correctedWord = word.replace(replacementEntry[0], replacementEntry[1]);
- 
-                     if (this.check(correctedWord)) {
-                         return [correctedWord];
-                     }
-                 }
-             }
- 
-             var self = this;
-             self.alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяӧі";
- 
-             /*
-             if (!self.alphabet) {
-                 // Use the alphabet as implicitly defined by the words in the dictionary.
-                 var alphaHash = {};
-                 
-                 for (var i in self.dictionaryTable) {
-                     for (var j = 0, _len = i.length; j < _len; j++) {
-                         alphaHash[i[j]] = true;
-                     }
-                 }
-                 
-                 for (var i in alphaHash) {
-                     self.alphabet += i;
-                 }
-                 
-                 var alphaArray = self.alphabet.split("");
-                 alphaArray.sort();
-                 self.alphabet = alphaArray.join("");
-             }
+             if (this.check(word) == false){
+		     return ['тут исправления']
+	     }
+	     else
+             	return []
              */
  
              /**
