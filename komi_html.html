@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+	<meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/addon/mode/overlay.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ZaitsevaDasha/Spellchecker-komi@lavriz-reserach/src/typo.js"></script>
+    <script title="loadTypo.js">
+"use strict";
+
+// loadTypo returns a promise resolved when the given dictionaries are loaded
+function loadTypo(affPath, dicPath) {
+	return new Promise(function(resolve, reject) {
+		var xhr_aff = new XMLHttpRequest();
+		xhr_aff.open('GET', affPath, true);
+		xhr_aff.onload = function() {
+			if (xhr_aff.readyState === 4 && xhr_aff.status === 200) {
+				//console.log('aff loaded');
+				var xhr_dic = new XMLHttpRequest();
+				xhr_dic.open('GET', dicPath, true);
+				xhr_dic.onload = function() {
+					if (xhr_dic.readyState === 4 && xhr_dic.status === 200) {
+						//console.log('dic loaded');
+						resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, { platform: 'any' }));
+					} else {
+						//console.log('failed loading dic');
+						reject();
+					}
+				};
+				//console.log('loading dic');
+				xhr_dic.send(null);
+			} else {
+				//console.log('failed loading aff');
+				reject();
+			}
+		};
+		//console.log('loading aff');
+		xhr_aff.send(null);
+	});
+}
+    </script>
+    <script title="spell-checker.js">
+"use strict";
+
+function startSpellCheck(cm, typo) {
+	if (!cm || !typo) return; // sanity
+
+	startSpellCheck.ignoreDict = {}; // dictionary of ignored words
+
+	// Define what separates a word
+	var rx_word = '!\'\"#$%&()*+,-./:;<=>?@[\\]^_`{|}~ ';
+
+	cm.spellcheckOverlay = {
+		token: function(stream) {
+			var ch = stream.peek();
+			var word = "";
+
+			if (rx_word.includes(ch) || ch === '\uE000' || ch === '\uE001') {
+				stream.next();
+				return null;
+			}
+
+			while ((ch = stream.peek()) && !rx_word.includes(ch)) {
+				word += ch;
+				stream.next();
+			}
+			const cyrillicPattern = /^\p{Script=Cyrillic}+$/u;
+
+			if (!cyrillicPattern.test(word)) return null; // no letters
+			if (startSpellCheck.ignoreDict[word]) return null;
+			if (!typo.check(word)) return "spell-error"; // CSS class: cm-spell-error
+		}
+	}
+	cm.addOverlay(cm.spellcheckOverlay);
+}
+
+    </script>
+    
+  	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+      .CodeMirror { border: 1px solid ; height: 150px; width: 300px; margin-left:30px; }
+    </style>
+
+  </head>
+  
+  <body>
+    <h1>Spellchecker Typo</h1>
+    Type your text here
+    <br><br>
+    <form>
+		<input type="text" id="fname" name="fname" placeholder="Type your text here"><br>
+    </form> 
+
+    <script>
+      // loading typo + dicts takes a while so we start it first
+    	// hosting the dicts on your local domain will give much faster loading time
+    	// english dictionaries taken from https://github.com/cfinke/Typo.js/pull/47
+    	// get other dictionaries with git clone https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
+    	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/typo/dictionaries/komi/komi.aff';
+    	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/typo/dictionaries/komi/komi.dic';
+      let typoLoaded=loadTypo(aff, dic);
+      
+      // initialize app and cms
+      var cm1 = CodeMirror.fromTextArea(document.getElementById('fname'), {lineWrapping:true});
+      cm1.setValue('');
+      
+      // start spellchecking
+      typoLoaded.then(typo => startSpellCheck(cm1, typo));
+    </script>
+  </body>
+
+</html>
