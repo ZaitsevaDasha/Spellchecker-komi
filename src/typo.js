@@ -522,7 +522,8 @@
           * @param {String} aWord The word to check.
           * @returns {Boolean}
           */
- 
+
+         
          check: function (aWord) {
              if (!this.loaded) {
                  throw "Dictionary not loaded.";

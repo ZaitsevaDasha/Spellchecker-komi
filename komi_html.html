@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/addon/mode/overlay.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ZaitsevaDasha/Spellchecker-komi@lavriz-reserach/src/typo.js"></script>
+    <script src="/Users/arinarazmyslovich/Documents/GitHub/Spellchecker-komi/src/typo.js"></script>
     <script title="loadTypo.js">
 "use strict";
 
@@ -24,14 +24,14 @@ function loadTypo(affPath, dicPath) {
 						//console.log('dic loaded');
 						resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, { platform: 'any' }));
 					} else {
-						//console.log('failed loading dic');
+						console.log('failed loading dic');
 						reject();
 					}
 				};
 				//console.log('loading dic');
 				xhr_dic.send(null);
 			} else {
-				//console.log('failed loading aff');
+				console.log('failed loading aff');
 				reject();
 			}
 		};
@@ -66,7 +66,6 @@ function startSpellCheck(cm, typo) {
 				stream.next();
 			}
 			const cyrillicPattern = /^\p{Script=Cyrillic}+$/u;
-
 			if (!cyrillicPattern.test(word)) return null; // no letters
 			if (startSpellCheck.ignoreDict[word]) return null;
 			if (!typo.check(word)) return "spell-error"; // CSS class: cm-spell-error
@@ -99,8 +98,8 @@ function startSpellCheck(cm, typo) {
     	// hosting the dicts on your local domain will give much faster loading time
     	// english dictionaries taken from https://github.com/cfinke/Typo.js/pull/47
     	// get other dictionaries with git clone https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
-    	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/typo/dictionaries/komi/komi.aff';
-    	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/typo/dictionaries/komi/komi.dic';
+    	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.aff';
+    	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.dic';
       let typoLoaded=loadTypo(aff, dic);
       
       // initialize app and cms
