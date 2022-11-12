@@ -24,14 +24,14 @@ function loadTypo(affPath, dicPath) {
 						//console.log('dic loaded');
 						resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, { platform: 'any' }));
 					} else {
-						console.log('failed loading dic');
+						//console.log('failed loading dic');
 						reject();
 					}
 				};
 				//console.log('loading dic');
 				xhr_dic.send(null);
 			} else {
-				console.log('failed loading aff');
+				//console.log('failed loading aff');
 				reject();
 			}
 		};
