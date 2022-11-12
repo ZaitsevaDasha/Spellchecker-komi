@@ -380,7 +380,6 @@
                      }
  
                      rules[ruleCode] = { "type": subruleType, "combineable": (combineable == "Y"), "entries": entries };
-                     //console.log(rules)
                      i += numEntries;
                  }
                  else if (ruleType === "COMPOUNDRULE") {
@@ -522,8 +521,7 @@
           * @param {String} aWord The word to check.
           * @returns {Boolean}
           */
-
-         
+ 
          check: function (aWord) {
              if (!this.loaded) {
                  throw "Dictionary not loaded.";
@@ -621,6 +619,9 @@
                     var k, k_len
                     for (k = 0, k_len = codes.length; k < k_len; k++) {
                         var code = codes[k]
+                        if (code == 'V2'){
+                            continue
+                        }
                         var rule = this.rules[code];
                         if (this._applyRule(cur_word, rule, word, code)) {
                             return true
@@ -656,6 +657,9 @@
                          newWord = entry.add + newWord;
                      }
                      if (newWord == aword) {
+                        console.log(code)
+                        console.log(word)
+                        console.log(entry.add)
                         return true
                      }
                      if ("continuationClasses" in entry) {
@@ -714,12 +718,117 @@
          alphabet: "",
  
          suggest: function (word, limit) {
-             if (this.check(word) == false){
-		     return ['тут исправления']
-	     }
-	     else
-             	return []
+
+            const levenshteinDistance = (s, t) => {
+                if (!s.length) return t.length;
+                if (!t.length) return s.length;
+                const arr = [];
+                for (let i = 0; i <= t.length; i++) {
+                  arr[i] = [i];
+                  for (let j = 1; j <= s.length; j++) {
+                    arr[i][j] =
+                      i === 0
+                        ? j
+                        : Math.min(
+                            arr[i - 1][j] + 1,
+                            arr[i][j - 1] + 1,
+                            arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+                          );
+                  }
+                }
+                return arr[t.length][s.length];
+              };
+
+              const applyrule2 = (word, code, aword) => {
+                var suggestions2 = []
+                //console.log(word)
+                //console.log(code)
+                var rule = this.rules[code]
+                var entries = rule.entries;
+                for (var i = 0, _len = entries.length; i < _len; i++) {
+                    var entry = entries[i];
+                    if (!entry.match || word.match(entry.match)) {
+                        var newWord = word;
+
+                        if (entry.remove) {
+                            newWord = newWord.replace(entry.remove, "");
+                        }
  
+                        if (rule.type === "SFX") {
+                            newWord = newWord + entry.add;
+                        }
+                        else {
+                            newWord = entry.add + newWord;
+                     }
+                     var dist = levenshteinDistance(newWord, aword)
+                     if (dist <= 2) {
+                        suggestions2.push([newWord, dist])
+                     }
+                }
+             }
+             return suggestions2
+            }
+
+             if (this.check(word) == false){
+                var suggestions = []
+                var all_stems = [];
+                var data = this._removeDicComments(this.all_stems)
+                var lines = data.split(/\r?\n/);
+                var i, _len;
+                for (i = 0, _len = lines.length; i < _len; i++) {
+                   var line = lines[i];
+                   var parts = line.split("/");
+                   var stem = parts[0];
+                   if (parts.length == 3){
+                       codes = parts[2]
+                       var stem_vars = parts[1].split(' ')
+                       stem_vars.forEach(function(item, i, stem_vars) {
+                        if (levenshteinDistance(item, word) <= 2){
+                            all_stems.push([stem, codes])
+                        }
+                      })
+                   }
+                   else if (parts.length == 2){
+                       codes = parts[1]
+                   }
+                   else
+                        if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
+                             suggestions.push(stem)
+                             continue  
+                        }
+                        else
+                            continue
+                   if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
+                        all_stems.push([stem, codes])
+                   }
+                   }
+                //console.log(all_stems)
+                var s, _slen;
+                for (s = 0, _slen = all_stems.length; s < _slen; s++) {
+                    var cur_word = all_stems[s][0];
+                       var codes = all_stems[s][1];
+                       codes = this.parseRuleCodes(codes)
+                       var k, k_len
+                       for (k = 0, k_len = codes.length; k < k_len; k++) {
+                           var code = codes[k];
+                           if (code == 'V2'){
+                                continue
+                            }
+                           var sugg = applyrule2(cur_word, code, word)
+                           sugg.forEach(function(item, i, sugg) {
+                                suggestions.push(item)
+                           });
+                           //console.log(suggestions)
+                    }
+                }
+                suggestions.sort(function(a, b) {
+                    return a[1] - b[1];
+                })
+                return suggestions.slice(0, 5) 
+                }
+	        else
+             	return []
+
              /**
               * Returns a hash keyed by all of the strings that can be made by making a single edit to the word (or words in) `words`
               * The value of each entry is the number of unique ways that the resulting word can be made.
