@@ -716,7 +716,7 @@
          alphabet: "",
  
          suggest: function (word, limit) {
-
+            if (arguments.length===0) return;
             const levenshteinDistance = (s, t) => {
                 if (!s.length) return t.length;
                 if (!t.length) return s.length;
