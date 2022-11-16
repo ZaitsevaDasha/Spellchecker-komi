@@ -118,7 +118,7 @@ function getSuggestionBox(typo) {
 
 	function sboxHide(sbox) {
 		sbox.style.top = sbox.style.left = '-1000px';
-		typo.suggest(); // disable any running suggeations search
+		typo.suggest(); // disable any running suggestions search
 	}
 
 	// create suggestions widget
@@ -153,18 +153,10 @@ function getSuggestionBox(typo) {
 			sboxShow(cm, sbox, [], e.pageX, e.pageY, true);
 
 			var results = [];
-			// async 
-			typo.suggest(token, null, all => {
-				//console.log('done');
-				sboxShow(cm, sbox, results, e.pageX, e.pageY);
-			}, next => {
-				//console.log('found '+next);
-				results.push(next);
-				sboxShow(cm, sbox, results, e.pageX, e.pageY, true);
-			});
+			// async
 
 			// non async 
-			//sboxShow(cm, sbox, typo.suggest(token), e.pageX, e.pageY);
+			sboxShow(cm, sbox, typo.suggest(token), e.pageX, e.pageY);
 
 			e.preventDefault();
 
@@ -205,9 +197,10 @@ function getSuggestionBox(typo) {
 
   </head>
   
-  <body>
-    <h1>Spellchecker Typo</h1>
-    Type your text here
+  <body style="background-color:white">
+	<div class="heading">
+    <h1 style="color:black">Spellchecker Komi</h1>
+</div>
     <br><br>
     <form>
 		<input type="text" id="fname" name="fname" placeholder="Type your text here"><br>
@@ -216,7 +209,6 @@ function getSuggestionBox(typo) {
     <script>
       // loading typo + dicts takes a while so we start it first
     	// hosting the dicts on your local domain will give much faster loading time
-    	// english dictionaries taken from https://github.com/cfinke/Typo.js/pull/47
     	// get other dictionaries with git clone https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
     	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.aff';
     	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.dic';

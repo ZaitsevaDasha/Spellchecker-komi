@@ -21,3 +21,15 @@
 #suggestBox > select > option:hover {
   box-shadow: 0 0 10px 100px #4A8CF7 inset; color: white;
 }
+.heading {
+  text-align: center; 
+}
+.heading {
+  text-align: center; 
+}
+
+form { 
+  margin: 0 auto; 
+  width:350px;
+  height: 550px;
+  }

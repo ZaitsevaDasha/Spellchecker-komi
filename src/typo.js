@@ -530,6 +530,7 @@
              var prefix = false
 
              if (this.checkExact(this.all_stems, aWord)) {
+                console.log(true)
                 return true;
              }
 
@@ -657,9 +658,6 @@
                          newWord = entry.add + newWord;
                      }
                      if (newWord == aword) {
-                        console.log(code)
-                        console.log(word)
-                        console.log(entry.add)
                         return true
                      }
                      if ("continuationClasses" in entry) {
@@ -818,13 +816,18 @@
                            sugg.forEach(function(item, i, sugg) {
                                 suggestions.push(item)
                            });
-                           //console.log(suggestions)
                     }
                 }
                 suggestions.sort(function(a, b) {
                     return a[1] - b[1];
                 })
-                return suggestions.slice(0, 5) 
+                var only_sugg = []
+                suggestions.forEach(function(item, i, suggestions) {
+                    if (i <= 4){
+                        only_sugg.push(item[0])
+                    }
+                });
+                return only_sugg
                 }
 	        else
              	return []
