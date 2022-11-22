@@ -92,12 +92,12 @@
                      path = settings.dictionaryPath;
                  }
                  else {
-                     path = "scr/dictionaries";
+                     path = "src/dictionaries";
                  }
  
                  if (!affData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".aff"), setAffData);
                  if (!wordsData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".dic"), setWordsData);
-                 this.wordlist = readWordlist(chrome.extensiongetURL("scr" + "/" + "wordlist.txt"))
+                 this.wordlist = readWordlist(chrome.extensiongetURL("wordlist.txt"))
              }
              else {
                  if (settings.dictionaryPath) {
@@ -112,7 +112,7 @@
  
                  if (!affData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".aff", setAffData);
                  if (!wordsData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".dic", setWordsData);
-                 this.wordlist = readWordlist(__dirname + "/" + "wordlist.txt")
+                 this.wordlist = readWordlist("wordlist.txt")
              }
          }
 
@@ -126,7 +126,7 @@
                 var line = lines[i]
                 words[line.split(/\t/)[0]] = line.split(/\t/)[1]
             }
-            //console.log(words)
+            console.log("done!")
             return words
          }
  
