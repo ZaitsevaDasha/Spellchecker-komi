@@ -92,12 +92,12 @@
                      path = settings.dictionaryPath;
                  }
                  else {
-                     path = "typo/dictionaries";
+                     path = "scr/dictionaries";
                  }
  
                  if (!affData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".aff"), setAffData);
                  if (!wordsData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".dic"), setWordsData);
-                 this.wordlist = readWordlist(chrome.extensiongetURL("typo" + "/" + "wordlist.txt"))
+                 this.wordlist = readWordlist(chrome.extensiongetURL("scr" + "/" + "wordlist.txt"))
              }
              else {
                  if (settings.dictionaryPath) {
