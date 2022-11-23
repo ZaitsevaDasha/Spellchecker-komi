@@ -71,8 +71,6 @@
          this.loaded = false;
 
          this.wordsData = wordsData
-
-         this.wordlist = wordlist
  
          var self = this;
 
@@ -86,7 +84,6 @@
              self.dictionary = dictionary;
              // If the data is preloaded, just setup the Typo object.
              if (affData && wordsData && wordlist) {
-<<<<<<< Updated upstream
                 var words = {}
                 var i, j, _len, _jlen;
                 var lines = wordlist.split(/\r?\n/);
@@ -96,9 +93,6 @@
                     words[line.split(/\t/)[0]] = line.split(/\t/)[1]
                 }
                  this.wordlist = words
-=======
-                 alert('1')
->>>>>>> Stashed changes
                  setup();
              }
              // Loading data for Chrome extentions.
@@ -119,7 +113,7 @@
                      path = settings.dictionaryPath;
                  }
                  else if (typeof __dirname !== 'undefined') {
-                     path = __dirname + '/dictionaries';
+                     path = __dirname + "/dictionaries";
                  }
                  else {
                      path = './dictionaries';
@@ -127,7 +121,7 @@
  
                  if (!affData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".aff", setAffData);
                  if (!wordsData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".dic", setWordsData);
-                 this.wordlist = readWordlist(path + "komi.txt")
+                 this.wordlist = readWordlist(__dirname + "/wordlist.txt")
              }
          }
 
@@ -141,7 +135,7 @@
                 var line = lines[i]
                 words[line.split(/\t/)[0]] = line.split(/\t/)[1]
             }
-            console.log("done!")
+            //console.log("done!")
             return words
          }
  
@@ -754,7 +748,7 @@
  
          alphabet: "",
  
-         suggest: function (word, limit) {
+         suggest: function (word) {
             if (arguments.length===0) return;
             const levenshteinDistance = (s, t) => {
                 if (!s.length) return t.length;
@@ -777,6 +771,8 @@
               };
 
               const applyrule2 = (word, code, aword) => {
+                console.log(word)
+                console.log(code)
                 var rule = this.rules[code]
                 var entries = rule.entries;
                 for (var i = 0, _len = entries.length; i < _len; i++) {
@@ -794,7 +790,7 @@
                         else {
                             newWord = entry.add + newWord;
                      }
-                     var dist = levenshteinDistance(newWord, aword)
+                     var dist = levenshteinDistance(newWord.toLowerCase(), aword)
                      if ((dist <= 2) & !(only_suggestions.includes(newWord))) {
                         suggestions.push([newWord, dist])
                         only_suggestions.push(newWord)
@@ -804,6 +800,7 @@
             }
 
              if (this.check(word) == false){
+                var word = word.toLowerCase()
                 var suggestions = []
                 var only_suggestions = []
                 var all_stems = [];
@@ -818,7 +815,7 @@
                        codes = parts[2]
                        var stem_vars = parts[1].split(' ')
                        stem_vars.forEach(function(item, i, stem_vars) {
-                        if (levenshteinDistance(item, word) <= 2){
+                        if (levenshteinDistance(item.toLowerCase(), word) <= 2){
                             all_stems.push([stem, codes])
                         }
                       })
@@ -828,14 +825,14 @@
                    }
                    else{
                         var dist = levenshteinDistance(stem, word.slice(0, stem.length))
-                        if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
+                        if (levenshteinDistance(stem.toLowerCase(), word.slice(0, stem.length)) <= 2){
                              suggestions.push([stem, dist])
                              continue  
                         }
                         else
                             continue
                    }
-                   if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
+                   if (levenshteinDistance(stem.toLowerCase(), word.slice(0, stem.length)) <= 2){
                         all_stems.push([stem, codes])
                    }
                    }
@@ -856,10 +853,10 @@
                 }
                 function compare(wordlist) {
                     return function(a, b) {
-                    if (!(wordlist.includes(a[0]))){
+                    if (!(a[0] in wordlist)){
                         wordlist[a[0]] = 0
                     }
-                    if (!(wordlist.includes(b[0]))){
+                    if (!(b[0] in wordlist)){
                         wordlist[b[0]] = 0
                     }  
                     return  a[1] - b[1] || wordlist[b[0]] - wordlist[a[0]]
