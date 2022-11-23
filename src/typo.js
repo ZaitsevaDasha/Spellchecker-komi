@@ -81,10 +81,8 @@
  
          if (dictionary) {
              self.dictionary = dictionary;
-             alert(wordlist)
              // If the data is preloaded, just setup the Typo object.
              if (affData && wordsData && wordlist) {
-                 alert('1')
                  this.wordlist = wordlist
                  setup();
              }
