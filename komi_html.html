@@ -10,7 +10,7 @@
 "use strict";
 
 // loadTypo returns a promise resolved when the given dictionaries are loaded
-function loadTypo(affPath, dicPath) {
+function loadTypo(affPath, dicPath, wordlistPath) {
 	return new Promise(function(resolve, reject) {
 		var xhr_aff = new XMLHttpRequest();
 		xhr_aff.open('GET', affPath, true);
@@ -21,23 +21,31 @@ function loadTypo(affPath, dicPath) {
 				xhr_dic.open('GET', dicPath, true);
 				xhr_dic.onload = function() {
 					if (xhr_dic.readyState === 4 && xhr_dic.status === 200) {
-						//console.log('dic loaded');
-						resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, { platform: 'any' }));
-					} else {
+						var xhr_wordlist = new XMLHttpRequest();
+						xhr_wordlist.open('GET', wordlistPath, true);
+						xhr_wordlist.onload = function() {
+							if (xhr_wordlist.readyState === 4 && xhr_wordlist.status === 200) {
+								resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, xhr_wordlist.responseText, { platform: 'any' }));
+							} else {
+								reject();
 						//console.log('failed loading dic');
-						reject();
 					}
 				};
 				//console.log('loading dic');
-				xhr_dic.send(null);
+				xhr_wordlist.send(null);
 			} else {
 				//console.log('failed loading aff');
 				reject();
 			}
 		};
+		xhr_dic.send(null);
+	} else {
+		reject();
+	}
+};
 		//console.log('loading aff');
 		xhr_aff.send(null);
-	});
+});
 }
     </script>
     <script title="spell-checker.js">
@@ -189,7 +197,7 @@ function getSuggestionBox(typo) {
     </script>
     
   	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.0/codemirror.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="src/style.css">
 
     <style>
       .CodeMirror { border: 1px solid ; height: 150px; width: 300px; margin-left:30px; }
@@ -212,7 +220,8 @@ function getSuggestionBox(typo) {
     	// get other dictionaries with git clone https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
     	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.aff';
     	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.dic';
-      let typoLoaded=loadTypo(aff, dic);
+		const wordlist = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/wordlist.txt';
+      let typoLoaded=loadTypo(aff, dic, wordlist);
       
       // initialize app and cms
       var cm1 = CodeMirror.fromTextArea(document.getElementById('fname'), {lineWrapping:true});

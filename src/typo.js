@@ -46,7 +46,7 @@
       * @returns {Typo} A Typo object.
       */
  
-     Typo = function (dictionary, affData, wordsData, settings) {
+     Typo = function (dictionary, affData, wordsData, wordlist, settings) {
          settings = settings || {};
  
          this.dictionary = null;
@@ -81,22 +81,25 @@
  
          if (dictionary) {
              self.dictionary = dictionary;
- 
+             alert(wordlist)
              // If the data is preloaded, just setup the Typo object.
-             if (affData && wordsData) {
+             if (affData && wordsData && wordlist) {
+                 alert('1')
+                 this.wordlist = wordlist
                  setup();
              }
              // Loading data for Chrome extentions.
              else if (typeof window !== 'undefined' && 'chrome' in window && 'extension' in window.chrome && 'getURL' in window.chrome.extension) {
-                 if (settings.dictionaryPath) {
+                if (settings.dictionaryPath) {
                      path = settings.dictionaryPath;
                  }
                  else {
-                     path = "typo/dictionaries";
+                     path = "src/dictionaries";
                  }
  
                  if (!affData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".aff"), setAffData);
                  if (!wordsData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".dic"), setWordsData);
+                 this.wordlist = readWordlist(chrome.extensiongetURL("wordlist.txt"))
              }
              else {
                  if (settings.dictionaryPath) {
@@ -111,7 +114,22 @@
  
                  if (!affData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".aff", setAffData);
                  if (!wordsData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".dic", setWordsData);
+                 this.wordlist = readWordlist("wordlist.txt")
              }
+         }
+
+         function readWordlist(url) {
+            var response = self._readFile(url, null, settings.asyncLoad);
+            var words = {}
+            var i, j, _len, _jlen;
+            var lines = response.split(/\r?\n/);
+ 
+            for (i = 0, _len = lines.length; i < _len; i++) {
+                var line = lines[i]
+                words[line.split(/\t/)[0]] = line.split(/\t/)[1]
+            }
+            console.log("done!")
+            return words
          }
  
          function readDataFile(url, setFunc) {
@@ -530,7 +548,15 @@
              var prefix = false
 
              if (this.checkExact(this.all_stems, aWord)) {
-                console.log(true)
+                return true;
+             }
+             if (aWord[0] == aWord[0].toUpperCase()){
+                var lWord = aWord[0].toLowerCase() + aWord.slice(1)
+                if (this.checkExact(this.all_stems, lWord)) {
+                    return true;
+                 }
+             }
+             if (this.checkExact(this.all_stems, aWord)) {
                 return true;
              }
 
@@ -738,9 +764,6 @@
               };
 
               const applyrule2 = (word, code, aword) => {
-                var suggestions2 = []
-                //console.log(word)
-                //console.log(code)
                 var rule = this.rules[code]
                 var entries = rule.entries;
                 for (var i = 0, _len = entries.length; i < _len; i++) {
@@ -759,16 +782,17 @@
                             newWord = entry.add + newWord;
                      }
                      var dist = levenshteinDistance(newWord, aword)
-                     if (dist <= 2) {
-                        suggestions2.push([newWord, dist])
+                     if ((dist <= 2) & !(only_suggestions.includes(newWord))) {
+                        suggestions.push([newWord, dist])
+                        only_suggestions.push(newWord)
                      }
                 }
              }
-             return suggestions2
             }
 
              if (this.check(word) == false){
                 var suggestions = []
+                var only_suggestions = []
                 var all_stems = [];
                 var data = this._removeDicComments(this.all_stems)
                 var lines = data.split(/\r?\n/);
@@ -789,13 +813,15 @@
                    else if (parts.length == 2){
                        codes = parts[1]
                    }
-                   else
+                   else{
+                        var dist = levenshteinDistance(stem, word.slice(0, stem.length))
                         if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
-                             suggestions.push(stem)
+                             suggestions.push([stem, dist])
                              continue  
                         }
                         else
                             continue
+                   }
                    if (levenshteinDistance(stem, word.slice(0, stem.length)) <= 2){
                         all_stems.push([stem, codes])
                    }
@@ -812,17 +838,23 @@
                            if (code == 'V2'){
                                 continue
                             }
-                           var sugg = applyrule2(cur_word, code, word)
-                           sugg.forEach(function(item, i, sugg) {
-                                suggestions.push(item)
-                           });
+                            applyrule2(cur_word, code, word)
                     }
                 }
-                suggestions.sort(function(a, b) {
-                    return a[1] - b[1];
-                })
+                function compare(wordlist) {
+                    return function(a, b) {
+                    if (!(a[0] in wordlist)){
+                        wordlist[a[0]] = 0
+                    }
+                    if (!(b[0] in wordlist)){
+                        wordlist[b[0]] = 0
+                    }  
+                    return  a[1] - b[1] || wordlist[b[0]] - wordlist[a[0]]
+                    }
+                }
+                suggestions.sort(compare(this.wordlist))
                 var only_sugg = []
-                suggestions.forEach(function(item, i, suggestions) {
+                suggestions.forEach(function(item, i) {
                     if (i <= 4){
                         only_sugg.push(item[0])
                     }
@@ -831,202 +863,8 @@
                 }
 	        else
              	return []
-
-             /**
-              * Returns a hash keyed by all of the strings that can be made by making a single edit to the word (or words in) `words`
-              * The value of each entry is the number of unique ways that the resulting word can be made.
-              *
-              * @arg mixed words Either a hash keyed by words or a string word to operate on.
-              * @arg bool known_only Whether this function should ignore strings that are not in the dictionary.
-              */
-             function edits1(words, known_only) {
-                 var rv = {};
- 
-                 var i, j, _iilen, _len, _jlen, _edit;
- 
-                 var alphabetLength = self.alphabet.length;
- 
-                 if (typeof words == 'string') {
-                     var word = words;
-                     words = {};
-                     words[word] = true;
-                 }
-                 const tdqm = require(`tqdm`);
-                 for (var word in words) {
-                     for (i = 0, _len = word.length + 1; i < _len; i++) {
-                         var s = [word.substring(0, i), word.substring(i)];
- 
-                         // Remove a letter.
-                         if (s[1]) {
-                             _edit = s[0] + s[1].substring(1);
- 
-                             if (!known_only || self.check(_edit)) {
-                                 if (!(_edit in rv)) {
-                                     rv[_edit] = 1;
-                                 }
-                                 else {
-                                     rv[_edit] += 1;
-                                 }
-                             }
-                         }
- 
-                         // Transpose letters
-                         // Eliminate transpositions of identical letters
-                         if (s[1].length > 1 && s[1][1] !== s[1][0]) {
-                             _edit = s[0] + s[1][1] + s[1][0] + s[1].substring(2);
- 
-                             if (!known_only || self.check(_edit)) {
-                                 if (!(_edit in rv)) {
-                                     rv[_edit] = 1;
-                                 }
-                                 else {
-                                     rv[_edit] += 1;
-                                 }
-                             }
-                         }
- 
-                         if (s[1]) {
-                             // Replace a letter with another letter.
- 
-                             var lettercase = (s[1].substring(0, 1).toUpperCase() === s[1].substring(0, 1)) ? 'uppercase' : 'lowercase';
- 
-                             for (j = 0; j < alphabetLength; j++) {
-                                 var replacementLetter = self.alphabet[j];
- 
-                                 // Set the case of the replacement letter to the same as the letter being replaced.
-                                 if ('uppercase' === lettercase) {
-                                     replacementLetter = replacementLetter.toUpperCase();
-                                 }
- 
-                                 // Eliminate replacement of a letter by itself
-                                 if (replacementLetter != s[1].substring(0, 1)) {
-                                     _edit = s[0] + replacementLetter + s[1].substring(1);
- 
-                                     if (!known_only || self.check(_edit)) {
-                                         if (!(_edit in rv)) {
-                                             rv[_edit] = 1;
-                                         }
-                                         else {
-                                             rv[_edit] += 1;
-                                         }
-                                     }
-                                 }
-                             }
-                         }
- 
-                         if (s[1]) {
-                             // Add a letter between each letter.
-                             for (j = 0; j < alphabetLength; j++) {
-                                 // If the letters on each side are capitalized, capitalize the replacement.
-                                 var lettercase = (s[0].substring(-1).toUpperCase() === s[0].substring(-1) && s[1].substring(0, 1).toUpperCase() === s[1].substring(0, 1)) ? 'uppercase' : 'lowercase';
- 
-                                 var replacementLetter = self.alphabet[j];
- 
-                                 if ('uppercase' === lettercase) {
-                                     replacementLetter = replacementLetter.toUpperCase();
-                                 }
- 
-                                 _edit = s[0] + replacementLetter + s[1];
- 
-                                 if (!known_only || self.check(_edit)) {
-                                     if (!(_edit in rv)) {
-                                         rv[_edit] = 1;
-                                     }
-                                     else {
-                                         rv[_edit] += 1;
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                 }
- 
-                 return rv;
-             }
- 
-             function correct(word) {
-                 // Get the edit-distance-1 and edit-distance-2 forms of this word.
-                 var ed1 = edits1(word, true);
-                 var ed2 = edits1(ed1, true);
- 
-                 // Sort the edits based on how many different ways they were created.
-                 var weighted_corrections = ed2;
-                 for (var ed1word in ed1) {
-                     if (!self.check(ed1word)) {
-                         continue;
-                     }
- 
-                     if (ed1word in weighted_corrections) {
-                         weighted_corrections[ed1word] += ed1[ed1word];
-                     }
-                     else {
-                         weighted_corrections[ed1word] = ed1[ed1word];
-                     }
-                 }
- 
-                 var i, _len;
- 
-                 var sorted_corrections = [];
- 
-                 for (i in weighted_corrections) {
-                     if (weighted_corrections.hasOwnProperty(i)) {
-                         sorted_corrections.push([i, weighted_corrections[i]]);
-                     }
-                 }
- 
-                 function sorter(a, b) {
-                     var a_val = a[1];
-                     var b_val = b[1];
-                     if (a_val < b_val) {
-                         return -1;
-                     } else if (a_val > b_val) {
-                         return 1;
-                     }
-                     // @todo If a and b are equally weighted, add our own weight based on something like the key locations on this language's default keyboard.
-                     return b[0].localeCompare(a[0]);
-                 }
- 
-                 sorted_corrections.sort(sorter).reverse();
- 
-                 var rv = [];
- 
-                 var capitalization_scheme = "lowercase";
- 
-                 if (word.toUpperCase() === word) {
-                     capitalization_scheme = "uppercase";
-                 }
-                 else if (word.substr(0, 1).toUpperCase() + word.substr(1).toLowerCase() === word) {
-                     capitalization_scheme = "capitalized";
-                 }
- 
-                 var working_limit = limit;
- 
-                 for (i = 0; i < Math.min(working_limit, sorted_corrections.length); i++) {
-                     if ("uppercase" === capitalization_scheme) {
-                         sorted_corrections[i][0] = sorted_corrections[i][0].toUpperCase();
-                     }
-                     else if ("capitalized" === capitalization_scheme) {
-                         sorted_corrections[i][0] = sorted_corrections[i][0].substr(0, 1).toUpperCase() + sorted_corrections[i][0].substr(1);
-                     }
- 
-                     if (!self.hasFlag(sorted_corrections[i][0], "NOSUGGEST") && rv.indexOf(sorted_corrections[i][0]) == -1) {
-                         rv.push(sorted_corrections[i][0]);
-                     }
-                     else {
-                         // If one of the corrections is not eligible as a suggestion , make sure we still return the right number of suggestions.
-                         working_limit++;
-                     }
-                 }
- 
-                 return rv;
-             }
- 
-             this.memoized[word] = {
-                 'suggestions': correct(word),
-                 'limit': limit
-             };
- 
-             return this.memoized[word]['suggestions'];
+            
+            
          }
      };
  })();
@@ -1035,4 +873,3 @@
  if (typeof module !== 'undefined') {
      module.exports = Typo;
  }
- 
