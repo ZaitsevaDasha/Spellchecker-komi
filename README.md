@@ -1,2 +1,2 @@
-# Spellchecker
+# Komi & Udmurt Spellchecker
  
