@@ -28,7 +28,7 @@ function loadTypo(affPath, dicPath, wordlistPath) {
 								resolve(new Typo('komi', xhr_aff.responseText, xhr_dic.responseText, xhr_wordlist.responseText, { platform: 'any' }));
 							} else {
 								reject();
-						//console.log('failed loading dic');
+						//console.log('failed loading wordlist');
 					}
 				};
 				//console.log('loading dic');
