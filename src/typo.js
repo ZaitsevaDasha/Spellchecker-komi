@@ -42,6 +42,7 @@
       *                              {Function} [loadedCallback]: Called when both affData and wordsData
       *                              have been loaded. Only used if asyncLoad is set to true. The parameter
       *                              is the instantiated Typo object.
+      * @param {String} [wordlist]
       *
       * @returns {Typo} A Typo object.
       */
@@ -83,7 +84,15 @@
              self.dictionary = dictionary;
              // If the data is preloaded, just setup the Typo object.
              if (affData && wordsData && wordlist) {
-                 this.wordlist = wordlist
+                var words = {}
+                var i, j, _len, _jlen;
+                var lines = wordlist.split(/\r?\n/);
+     
+                for (i = 0, _len = lines.length; i < _len; i++) {
+                    var line = lines[i]
+                    words[line.split(/\t/)[0]] = line.split(/\t/)[1]
+                }
+                 this.wordlist = words
                  setup();
              }
              // Loading data for Chrome extentions.
@@ -97,7 +106,7 @@
  
                  if (!affData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".aff"), setAffData);
                  if (!wordsData) readDataFile(chrome.extension.getURL(path + "/" + dictionary + "/" + dictionary + ".dic"), setWordsData);
-                 this.wordlist = readWordlist(chrome.extensiongetURL("wordlist.txt"))
+                 this.wordlist = readWordlist(chrome.extensiongetURL(path + "komi.txt"))
              }
              else {
                  if (settings.dictionaryPath) {
@@ -112,7 +121,7 @@
  
                  if (!affData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".aff", setAffData);
                  if (!wordsData) readDataFile(path + "/" + dictionary + "/" + dictionary + ".dic", setWordsData);
-                 this.wordlist = readWordlist("wordlist.txt")
+                 this.wordlist = readWordlist(path + "komi.txt")
              }
          }
 

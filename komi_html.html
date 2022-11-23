@@ -57,7 +57,7 @@ function startSpellCheck(cm, typo) {
 	startSpellCheck.ignoreDict = {}; // dictionary of ignored words
 
 	// Define what separates a word
-	var rx_word = '!\'\"#$%&()*+,-./:;<=>?@[\\]^_`{|}~ ';
+	var rx_word = '!\'\"#$%&()*+,./:;<=>?@[\\]^_`{|}~ ';
 
 	cm.spellcheckOverlay = {
 		token: function(stream) {
@@ -220,7 +220,7 @@ function getSuggestionBox(typo) {
     	// get other dictionaries with git clone https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
     	const aff = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.aff';
     	const dic = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.dic';
-		const wordlist = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/wordlist.txt';
+		const wordlist = 'https://raw.githubusercontent.com/ZaitsevaDasha/Spellchecker-komi/lavriz-reserach/src/dictionaries/komi/komi.txt';
       let typoLoaded=loadTypo(aff, dic, wordlist);
       
       // initialize app and cms
