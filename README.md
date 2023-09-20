@@ -23,7 +23,7 @@ A browser extension requires 3 files:
 
 
 ### Notes
-We also kept track of the work by [Weekly Meeting Notes](https://www.notion.so/4f0da01751304e15b5a9fba17faa0ef9?v=fc08f97f1841446faa9c9b7285be6efb) in Notion.
+We also kept track of the work in Russian by [Weekly Meeting Notes](https://www.notion.so/4f0da01751304e15b5a9fba17faa0ef9?v=fc08f97f1841446faa9c9b7285be6efb) in Notion.
 
 ## Contributing
 We welcome PRs from the community and any contributions to the project!
